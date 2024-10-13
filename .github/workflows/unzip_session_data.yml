@@ -22,6 +22,16 @@ jobs:
     - name: Download artifact directly
       run: |
         curl -L -o partial_sessions.zip https://github.com/bassoonblazar/testingnew/actions/runs/11314880586/artifacts/2050255175
+        ls -lh partial_sessions.zip
+
+    - name: Check if zip file exists and its size
+      run: |
+        if [ -f partial_sessions.zip ]; then
+          echo "Download successful"
+          unzip -l partial_sessions.zip
+        else
+          echo "Download failed"
+        fi
 
     - name: Run Docker container with session data
       run: docker run -d --name session_container -v ${{ github.workspace }}/partial_sessions.zip:/app/partial_sessions.zip ghcr.io/your_username/your_image:tag
