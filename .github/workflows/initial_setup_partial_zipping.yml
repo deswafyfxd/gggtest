@@ -27,6 +27,7 @@ jobs:
         sleep 1200 # Sleep for 20 minutes
         # Ensure proper permissions and zip the sessions folder
         docker exec session_container bash -c "chmod -R 777 /app/sessions"
+        sleep 10 # Give time for permissions to take effect
         docker exec session_container bash -c "zip -r /app/partial_sessions.zip /app/sessions"
 
     - name: Copy Partial Zip to Runner
