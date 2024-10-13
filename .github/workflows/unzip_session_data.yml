@@ -20,29 +20,27 @@ jobs:
       id: get_run_id
       run: |
         LATEST_RUN_ID=$(curl -s -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" "https://api.github.com/repos/your_username/your_repo/actions/workflows/initial_setup_partial_zipping.yml/runs?status=success&per_page=1" | jq -r '.workflow_runs[0].id')
-        echo "LATEST_RUN_ID=${LATEST_RUN_ID}"
-        echo "::set-output name=LATEST_RUN_ID::${LATEST_RUN_ID}"
+        echo "LATEST_RUN_ID=${LATEST_RUN_ID}" >> $GITHUB_ENV
 
     - name: Get the artifact download URL
       id: get_artifact_url
       run: |
-        if [ "${{ steps.get_run_id.outputs.LATEST_RUN_ID }}" != "null" ]; then
-          LATEST_ARTIFACT_URL=$(curl -s -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" "https://api.github.com/repos/your_username/your_repo/actions/runs/${{ steps.get_run_id.outputs.LATEST_RUN_ID }}/artifacts" | jq -r '.artifacts[0].archive_download_url')
-          echo "LATEST_ARTIFACT_URL=${LATEST_ARTIFACT_URL}"
-          echo "::set-output name=LATEST_ARTIFACT_URL::${LATEST_ARTIFACT_URL}"
+        if [ "${LATEST_RUN_ID}" != "null" ]; then
+          LATEST_ARTIFACT_URL=$(curl -s -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" "https://api.github.com/repos/your_username/your_repo/actions/runs/${LATEST_RUN_ID}/artifacts" | jq -r '.artifacts[0].archive_download_url')
+          echo "LATEST_ARTIFACT_URL=${LATEST_ARTIFACT_URL}" >> $GITHUB_ENV
         else
           echo "No successful runs found"
           exit 1
         fi
 
     - name: Download the latest artifact
-      if: steps.get_artifact_url.outputs.LATEST_ARTIFACT_URL != 'null'
+      if: env.LATEST_ARTIFACT_URL != 'null'
       run: |
-        curl -L -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" -o partial_sessions.zip "${{ steps.get_artifact_url.outputs.LATEST_ARTIFACT_URL }}"
+        curl -L -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" -o partial_sessions.zip "${LATEST_ARTIFACT_URL}"
         ls -lh partial_sessions.zip
 
     - name: Verify artifact download
-      if: steps.get_artifact_url.outputs.LATEST_ARTIFACT_URL != 'null'
+      if: env.LATEST_ARTIFACT_URL != 'null'
       run: |
         if [ -f partial_sessions.zip ]; then
           echo "Download successful"
@@ -56,5 +54,5 @@ jobs:
       run: docker pull ghcr.io/your_username/your_image:tag
 
     - name: Run Docker container with session data
-      if: steps.get_artifact_url.outputs.LATEST_ARTIFACT_URL != 'null'
+      if: env.LATEST_ARTIFACT_URL != 'null'
       run: docker run -d --name session_container -v ${{ github.workspace }}/partial_sessions.zip:/app/partial_sessions.zip ghcr.io/your_username/your_image:tag
