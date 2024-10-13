@@ -14,24 +14,25 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Log in to GHCR
-      run: echo ${{ secrets.NEW_GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+      run: echo ${{ secrets.NEW_GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
-    - name: Pull Docker image
-      run: docker pull ghcr.io/your_username/your_image:tag
+    - name: Download partial session data artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: partial_session_data
 
-    - name: Download artifact directly
-      run: |
-        curl -L -o partial_sessions.zip https://github.com/bassoonblazar/testingnew/actions/runs/11314880586/artifacts/2050255175
-        ls -lh partial_sessions.zip
-
-    - name: Check if zip file exists and its size
+    - name: Verify artifact download
       run: |
         if [ -f partial_sessions.zip ]; then
           echo "Download successful"
           unzip -l partial_sessions.zip
         else
           echo "Download failed"
+          exit 1
         fi
+
+    - name: Pull Docker image
+      run: docker pull ghcr.io/your_username/your_image:tag
 
     - name: Run Docker container with session data
       run: docker run -d --name session_container -v ${{ github.workspace }}/partial_sessions.zip:/app/partial_sessions.zip ghcr.io/your_username/your_image:tag
