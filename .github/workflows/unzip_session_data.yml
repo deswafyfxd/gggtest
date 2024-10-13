@@ -13,27 +13,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Log in to GitHub
-      run: echo ${{ secrets.NEW_GITHUB_TOKEN }} | gh auth login --with-token
-
-    - name: Get latest workflow run ID
-      id: get_latest_run
-      run: |
-        export LATEST_RUN_ID=$(curl -s -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" "https://api.github.com/repos/your_username/your_repo/actions/runs?per_page=1" | jq -r '.workflow_runs[0].id')
-        echo "::set-output name=LATEST_RUN_ID::$LATEST_RUN_ID"
-
-    - name: Get latest artifact URL
-      id: get_artifact_url
-      run: |
-        export LATEST_ARTIFACT_URL=$(curl -s -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" "https://api.github.com/repos/your_username/your_repo/actions/runs/${{ steps.get_latest_run.outputs.LATEST_RUN_ID }}/artifacts" | jq -r '.artifacts[0].archive_download_url')
-        echo "::set-output name=LATEST_ARTIFACT_URL::$LATEST_ARTIFACT_URL"
-
-    - name: Download latest artifact
-      run: |
-        curl -L -H "Authorization: token ${{ secrets.NEW_GITHUB_TOKEN }}" -o partial_sessions.zip ${{ steps.get_artifact_url.outputs.LATEST_ARTIFACT_URL }}
+    - name: Log in to GHCR
+      run: echo ${{ secrets.NEW_GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
     - name: Pull Docker image
       run: docker pull ghcr.io/your_username/your_image:tag
+
+    - name: Download artifact directly
+      run: |
+        curl -L -o partial_sessions.zip https://github.com/bassoonblazar/testingnew/actions/runs/11314880586/artifacts/2050255175
 
     - name: Run Docker container with session data
       run: docker run -d --name session_container -v ${{ github.workspace }}/partial_sessions.zip:/app/partial_sessions.zip ghcr.io/your_username/your_image:tag
