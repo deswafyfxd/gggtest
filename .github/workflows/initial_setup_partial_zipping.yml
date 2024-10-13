@@ -25,6 +25,8 @@ jobs:
         docker run -d --name session_container ghcr.io/your_username/your_image:tag
         # Simulate initial processes
         sleep 1200 # Sleep for 20 minutes
+        # Stop all related processes to unlock files
+        docker exec session_container pkill -f chrome
         # Ensure proper permissions and zip the sessions folder
         docker exec session_container bash -c "chmod -R 777 /app/sessions"
         sleep 10 # Give time for permissions to take effect
