@@ -13,11 +13,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Log in to GHCR
+      run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
     - name: Pull Docker image
       run: docker pull ghcr.io/your_username/your_image:tag
 
     - name: Download partial session data artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: partial_session_data
         path: partial_sessions.zip
