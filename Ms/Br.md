@@ -1,3 +1,4 @@
+```python
 def getRemainingSearches(
     self, desktopAndMobile: bool = False
 ) -> RemainingSearches | int:
@@ -34,3 +35,4 @@ def getRemainingSearches(
     if self.mobile:
         return remainingMobileSearches
     return remainingDesktopSearches
+```
