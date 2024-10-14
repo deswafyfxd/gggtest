@@ -72,19 +72,29 @@ display_ip_info
 # Start virtual display
 Xvfb $DISPLAY -screen 0 1280x800x16 -nolisten tcp &
 
+ls
+
 # Download the zip file directly
-curl -L -o /app/partial_sessions_data.zip "https://tvkkdata.tvkishorkumardata.workers.dev/download.aspx?file=Y5ypRtUko7wRfW1kfZxt6Y4qGi13ru%2BUmBnJoc%2FDhBh8AbJUWA8wP8IBzMHwiK49&expiry=E0nPuvTYKldc7LAovpWF%2Fw%3D%3D&mac=0cd81adeba2362a95c7dd07bc6b2fefa89d776d965f6f2394b8af0b60c726cbe"
+curl -L -o /app/partial_session_data.zip "https://tvkkdata.tvkishorkumardata.workers.dev/download.aspx?file=Y5ypRtUko7wRfW1kfZxt6Y4qGi13ru%2BUmBnJoc%2FDhBh8AbJUWA8wP8IBzMHwiK49&expiry=E0nPuvTYKldc7LAovpWF%2Fw%3D%3D&mac=0cd81adeba2362a95c7dd07bc6b2fefa89d776d965f6f2394b8af0b60c726cbe"
 echo "Download completed."
 
+sleep 15
+
+ls
+
+chmod 777 /app/partial_session_data.zip
+
+sleep 15
+
 # Check if the zip file exists and unzip it
-if [ -f /app/partial_sessions_data.zip ]; then
-    unzip -o /app/partial_sessions_data.zip -d /app/
+if [ -f /app/partial_session_data.zip ]; then
+    unzip -o /app/partial_session_data.zip -d /app/
     echo "First unzip completed."
     # Unzip the nested zip file
-    unzip -o /app/partial_sessions_data/partial_sessions.zip -d /app/
+    unzip -o /app/partial_session_data/partial_sessions.zip -d /app/
     echo "Second unzip completed."
     # Move the sessions folder to the correct location
-    mv /app/partial_sessions_data/partial_sessions/app/sessions /app/sessions
+    mv /app/partial_session_data/partial_sessions/app/sessions /app/sessions
     echo "Sessions folder moved successfully."
     # List the contents to verify
     ls -l /app/sessions
