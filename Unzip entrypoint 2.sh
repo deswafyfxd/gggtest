@@ -102,6 +102,10 @@ else
     echo "No session data zip file found."
 fi
 
+ls
+
+sleep 15
+
 # Kill all related processes
 kill_related_processes
 
