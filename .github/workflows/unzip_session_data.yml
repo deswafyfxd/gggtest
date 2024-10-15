@@ -13,15 +13,53 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Log in to GHCR
-      run: echo ${{ secrets.NEW_GITHUB_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+    - name: Log in to Docker Hub (if secret provided)
+      if: secrets.DOCKERHUB_TOKEN
+      run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-    - name: Pull Docker image
-      run: docker pull ghcr.io/your_username/your_image:tag
+    - name: Log in to GHCR (if secret provided)
+      if: secrets.GHCR_TOKEN
+      run: echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
-    - name: Download artifact directly
+    - name: Download partial session data from URL
+      run: curl -L -o partial_session_data.zip "YOUR_DOWNLOAD_URL"
+
+    - name: Verify artifact download
       run: |
-        curl -L -o partial_sessions.zip https://github.com/bassoonblazar/testingnew/actions/runs/11314880586/artifacts/2050255175
+        if [ -f partial_session_data.zip ]; then
+          echo "Download successful"
+          unzip -l partial_session_data.zip
+        else
+          echo "Download failed"
+          exit 1
+        fi
+
+    - name: Unzip and setup session data on GitHub Runner
+      run: |
+        sleep 15
+        ls
+        chmod 777 partial_session_data.zip
+        sleep 15
+        if [ -f partial_session_data.zip ]; then
+          unzip -o partial_session_data.zip -d ${{ github.workspace }}
+          echo "First unzip completed."
+          unzip -o ${{ github.workspace }}/partial_sessions.zip -d ${{ github.workspace }}
+          echo "Second unzip completed."
+          cd ${{ github.workspace }}/app
+          ls
+          mv sessions ${{ github.workspace }}/sessions
+          echo "Sessions folder moved successfully."
+          # Listing the contents to verify
+          ls -l ${{ github.workspace }}/sessions
+        else
+          echo "No session data zip file found."
+        fi
+
+    - name: Pull Docker image from Docker Hub
+      run: docker pull your_dockerhub_username/your_public_image:tag
+
+    - name: Pull Docker image from GHCR
+      run: docker pull ghcr.io/your_username/your_public_image:tag
 
     - name: Run Docker container with session data
-      run: docker run -d --name session_container -v ${{ github.workspace }}/partial_sessions.zip:/app/partial_sessions.zip ghcr.io/your_username/your_image:tag
+      run: docker run -d --name session_container -v ${{ github.workspace }}/sessions:/app/sessions your_dockerhub_username/your_public_image:tag
